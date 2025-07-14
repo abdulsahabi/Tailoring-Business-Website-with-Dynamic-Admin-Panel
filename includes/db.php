@@ -1,0 +1,3 @@
+<?php
+// TODO: Database connection
+?>

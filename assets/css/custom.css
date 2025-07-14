@@ -1,0 +1,117 @@
+@font-face {
+  font-family: 'PoppinsRegular';
+  src: url('/assets/fonts/Poppins-Regular.ttf') format('truetype');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'PoppinsMedium';
+  src: url('/assets/fonts/Poppins-Medium.ttf') format('truetype');
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: 'PoppinsBold';
+  src: url('/assets/fonts/Poppins-Bold.ttf') format('truetype');
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'PoppinsSemiBold';
+  src: url('/assets/fonts/Poppins-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+}
+
+:root {
+  /* === Primary Branding Colors === */
+  --primary-yellow: #FFC107;     /* Vibrant Yellow */
+  --primary-brown: #6B4C1E;      /* Rich Dark Brown */
+
+  /* === Support Colors === */
+  --light-brown: #A97449;        /* Soft brown for backgrounds or accents */
+  --soft-yellow: #FFF3CD;        /* Pale yellow for soft sections */
+  --accent-gold: #D4AF37;        /* Gold highlight for luxury feel */
+  --light-gold: #F8E7A2;         /* Subtle gold background */
+
+  /* === Neutrals === */
+  --background-color: #FDFBF9;   /* Main site background */
+  --white: #ffffff;
+  --off-white: #FAF8F5;
+
+  /* === Text Colors === */
+  --text-color: #1F1F1F;         /* Main text color */
+  --muted-text: #555555;         /* Muted subtext */
+  --text-light: #888888;
+  --text-inverse: #ffffff;
+
+  /* === Status Colors (for feedbacks & alerts) === */
+  --success: #28A745;
+  --success-bg: #D4EDDA;
+  --warning: #FFC107;
+  --warning-bg: #FFF3CD;
+  --danger: #DC3545;
+  --danger-bg: #F8D7DA;
+  --info: #17A2B8;
+  --info-bg: #D1ECF1;
+
+  /* === Borders / Shadows === */
+  --border-color: #E0E0E0;
+  --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+
+
+body {
+  font-family: 'PoppinsRegular', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.6;
+  background: var(--background-color);
+  color: var(--muted-text);
+}
+.h1 {
+  font-family: PoppinsSemiBold;
+}
+
+
+
+.label {
+  color: var(--text-light);
+  font-size: 11px;
+  margin-left: 10px;
+  font-family: PoppinsMedium;
+}
+.input-group{
+  position: relative;
+}
+
+
+/* === Border Enhancements === */
+.input
+ {
+  font-family: PoppinsMedium;
+}
+
+.button {
+  font-family: PoppinsSemiBold;
+}
+
+.button:hover {
+  background-color: #FFB300
+}
+
+.error {
+  color: var(--danger);
+  font-size: 11px;
+  font-family: PoppinsMedium;
+  margin-top: 4px;
+  margin-left: 4px;
+}
+.link {
+  font-family: PoppinsSemiBold;
+}
+
+.advert {
+  font-family: PoppinsRegular;
+  color: var(--background-color);
+}

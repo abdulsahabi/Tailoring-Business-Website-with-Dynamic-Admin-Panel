@@ -1,0 +1,23 @@
+{
+  "name": "tailoring-business-website-with-dynamic-admin-panel",
+  "version": "1.0.0",
+  "description": "This project aims to deliver a fully functional and modern business website that allows the client to: - Showcase tailoring works through a clean Gallery section - Let customers contact them via WhatsApp, phone, and Instagram - Dynamically manage image uploads through a secured Admin Panel - Experience a secure login",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abdulsahabi/Tailoring-Business-Website-with-Dynamic-Admin-Panel.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/abdulsahabi/Tailoring-Business-Website-with-Dynamic-Admin-Panel/issues"
+  },
+  "homepage": "https://github.com/abdulsahabi/Tailoring-Business-Website-with-Dynamic-Admin-Panel#readme",
+  "devDependencies": {
+    "tailwindcss": "^4.1.11"
+  }
+}
