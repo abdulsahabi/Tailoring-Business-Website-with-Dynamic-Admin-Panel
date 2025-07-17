@@ -115,3 +115,11 @@ body {
   font-family: PoppinsRegular;
   color: var(--background-color);
 }
+
+.header {
+  background-color: var(--background-color);
+}
+
+.title {
+  font-family: PoppinsSemiBold;
+}
