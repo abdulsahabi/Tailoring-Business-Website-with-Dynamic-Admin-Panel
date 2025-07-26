@@ -1,3 +1,12 @@
+<?php
+require_once '../includes/db.php';
+require_once '../includes/functions.php';
+trackPageView(); // Auto-detects route
+
+?>
+
+
+
 <!DOCTYPE html><html lang="en">
 <?php require("../views/components/head.php") ?>
 <body class="bg-[var(--background-color)] text-[var(--text-color)] font-[PoppinsRegular]">
@@ -46,8 +55,9 @@ function showToast(message, success = false) {
   const toast = document.createElement("div");
   toast.className = `bottom-5 px-4 py-2 rounded text-sm z-50 text-white shadow-md transition-all duration-300 ${success ? 'bg-green-600' : 'bg-red-600'}`;
   toast.textContent = message;
-  document.querySelector('.status').innerHTML = ""
-  document.querySelector('.status').appendChild(toast);
+  const statusDiv = document.querySelector('.status');
+  statusDiv.innerHTML = "";
+  statusDiv.appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
 }
 
@@ -55,6 +65,9 @@ document.getElementById("forgotForm").addEventListener("submit", async function 
   e.preventDefault();
 
   const email = document.getElementById("email");
+  const emailError = document.getElementById("email_error");
+  emailError.textContent = "";
+  emailError.classList.add("hidden");
 
   let loader = document.getElementById("loader");
   if (!loader) {
@@ -68,10 +81,6 @@ document.getElementById("forgotForm").addEventListener("submit", async function 
   }
 
   const data = { email: email.value.trim() };
-
-  const emailError = document.getElementById("email_error");
-  emailError.textContent = "";
-  emailError.classList.add("hidden");
 
   if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
     emailError.textContent = "Enter a valid email";
@@ -88,7 +97,6 @@ document.getElementById("forgotForm").addEventListener("submit", async function 
       body: JSON.stringify(data),
     });
 
-    await delay(1000);
     const result = await res.json();
     loader.classList.add("hidden");
 
@@ -98,20 +106,18 @@ document.getElementById("forgotForm").addEventListener("submit", async function 
         emailError.classList.remove("hidden");
         email.focus();
       }
-      showToast("Could not send code. Try again.");
+      
       return;
     }
 
     showToast("Verification code sent!", true);
 
-    // Redirect to verification page
-    setTimeout(() => {
-      window.location.href = `/admin/verify-code.php?email=${encodeURIComponent(data.email)}`;
-    }, 1000);
+    // Redirect to verification page (code is not included in URL!)
+    window.location.href = `/admin/verify-reset.php?email=${encodeURIComponent(data.email)}`;
 
   } catch (err) {
     loader.classList.add("hidden");
-    showToast("Something went wrong.");
+    showToast("Something went wrong. Please try again.");
     console.error(err);
   }
 });

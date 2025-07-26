@@ -1,4 +1,31 @@
-<?php // admin-dashboard.php ?>
+<?php 
+  require_once __DIR__ . '/../includes/auth.php';
+?>
+<?php
+require_once '../includes/db.php';
+require_once '../includes/functions.php';
+trackPageView(); // Auto-detects route
+//logView(); // Auto-detects route and device type
+
+// Count site views
+$siteViews = $pdo->query("SELECT SUM(count) FROM page_views")->fetchColumn() ?? 0;
+
+// Count gallery items
+$galleryCount = $pdo->query("SELECT COUNT(*) FROM images")->fetchColumn() ?? 0;
+
+// Count tokens
+$tokenCount = $pdo->query("SELECT COUNT(*) FROM tokens")->fetchColumn() ?? 0;
+
+// Count users
+$userCount = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn() ?? 0;
+
+$peakStats = getPeakTrafficStats($pdo);
+
+
+?>
+
+
+
 <?php $activePage = 'dashboard'; ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -32,7 +59,7 @@
 
     #adminSidebar {
       width: var(--sidebar-width);
-      transition: transform 0.3s ease-in-out;
+      transition: transform 0.2s ease-in-out;
       z-index: 40;
       transform: translateX(-100%);
     }
@@ -42,7 +69,7 @@
     }
 
     #mainContent {
-      transition: all 0.3s ease-in-out;
+      transition: all 0.2s ease-in-out;
     }
 
     #mainContent.shifted {
@@ -99,54 +126,53 @@
     <p class="text-sm text-gray-500">Welcome back. Here's the latest insight.</p>
   </div>
 
-  <!-- Summary Cards -->
-  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-    <div class="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
-      <div class="p-3 rounded-full bg-yellow-100 text-yellow-500">
-        <i data-lucide="eye" class="w-6 h-6"></i>
-      </div>
-      <div>
-        <h2 class="text-lg font-semibold"><?= $siteViews ?? '1,240' ?></h2>
-        <p class="text-sm text-gray-500">Site Views</p>
-      </div>
+ <!-- Summary Cards -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+  <div class="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
+    <div class="p-3 rounded-full bg-yellow-100 text-yellow-500">
+      <i data-lucide="eye" class="w-6 h-6"></i>
     </div>
-    <div class="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
-      <div class="p-3 rounded-full bg-blue-100 text-blue-500">
-        <i data-lucide="image" class="w-6 h-6"></i>
-      </div>
-      <div>
-        <h2 class="text-lg font-semibold"><?= $galleryCount ?? '82' ?></h2>
-        <p class="text-sm text-gray-500">Gallery Items</p>
-      </div>
+    <div>
+      <h2 class="text-lg font-semibold"><?= $siteViews ?? '1,240' ?></h2>
+      <p class="text-sm text-gray-500">Site Views</p>
     </div>
-    <div class="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
-      <div class="p-3 rounded-full bg-green-100 text-green-500">
-        <i data-lucide="key-round" class="w-6 h-6"></i>
-      </div>
-      <div>
-        <h2 class="text-lg font-semibold"><?= $tokenCount ?? '14' ?></h2>
-        <p class="text-sm text-gray-500">Moderator Tokens</p>
-      </div>
+  </div>
+  <div class="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
+    <div class="p-3 rounded-full bg-blue-100 text-blue-500">
+      <i data-lucide="image" class="w-6 h-6"></i>
     </div>
-    <div class="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
-      <div class="p-3 rounded-full bg-red-100 text-red-500">
-        <i data-lucide="users" class="w-6 h-6"></i>
-      </div>
-      <div>
-        <h2 class="text-lg font-semibold"><?= $userCount ?? '6' ?></h2>
-        <p class="text-sm text-gray-500">System Users</p>
-      </div>
+    <div>
+      <h2 class="text-lg font-semibold"><?= $galleryCount ?? '82' ?></h2>
+      <p class="text-sm text-gray-500">Gallery Items</p>
     </div>
-  </section>
-
+  </div>
+  <div class="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
+    <div class="p-3 rounded-full bg-green-100 text-green-500">
+      <i data-lucide="key-round" class="w-6 h-6"></i>
+    </div>
+    <div>
+      <h2 class="text-lg font-semibold"><?= $tokenCount ?? '14' ?></h2>
+      <p class="text-sm text-gray-500">Moderator Tokens</p>
+    </div>
+  </div>
+  <div class="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
+    <div class="p-3 rounded-full bg-red-100 text-red-500">
+      <i data-lucide="users" class="w-6 h-6"></i>
+    </div>
+    <div>
+      <h2 class="text-lg font-semibold"><?= $userCount ?? '6' ?></h2>
+      <p class="text-sm text-gray-500">System Users</p>
+    </div>
+  </div>
+</section>
   <!-- Insights -->
   <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
     <div class="bg-white p-6 rounded-xl shadow-sm">
       <h3 class="text-sm font-medium text-gray-500 mb-1">Peak Traffic Time</h3>
       <div class="mt-4">
-        <p class="text-lg font-bold text-gray-800">8PM – 10PM</p>
-        <p class="text-xs text-gray-400 mt-1">Average 340 visitors</p>
+       <p class="text-lg font-bold text-gray-800"><?= $peakStats['time_range'] ?></p>
+      <p class="text-xs text-gray-400 mt-1">Average <?= $peakStats['average_visitors'] ?> visitors</p>
       </div>
     </div>
   </section>
@@ -155,7 +181,9 @@
   <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <div class="bg-white p-6 rounded-xl shadow-sm">
       <h3 class="text-base font-medium text-gray-800 mb-4">Image Uploads (Last 7 days)</h3>
-      <canvas id="uploadChart" height="180"></canvas>
+      <div class="relative h-[200px]">
+  <canvas id="uploadChart" class="absolute inset-0 w-full h-full"></canvas>
+</div>
     </div>
     <div class="bg-white p-6 rounded-xl shadow-sm">
       <h3 class="text-base font-medium text-gray-800 mb-4">Visitor Types</h3>
@@ -167,20 +195,7 @@
   <section>
     <div class="bg-white p-6 rounded-xl shadow-sm mb-[60px]">
       <h3 class="text-lg font-semibold mb-4">Recent Activities</h3>
-      <ul class="divide-y divide-gray-100 text-sm">
-        <li class="py-3 flex justify-between items-center">
-          <span>New image uploaded to Bridal gallery</span>
-          <span class="text-xs text-gray-400">3 hours ago</span>
-        </li>
-        <li class="py-3 flex justify-between items-center">
-          <span>Token created for new moderator</span>
-          <span class="text-xs text-gray-400">Yesterday</span>
-        </li>
-        <li class="py-3 flex justify-between items-center">
-          <span>User profile updated</span>
-          <span class="text-xs text-gray-400">2 days ago</span>
-        </li>
-      </ul>
+     <ul id="activityList" class="divide-y divide-gray-100 text-sm"></ul>
     </div>
   </section>
 
@@ -189,100 +204,208 @@
 
   <!-- Scripts -->
   <script src="https://unpkg.com/lucide@latest" defer></script>
+  <!-- Chart Scripts (place at bottom of body) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      lucide.createIcons();
-      
-      const toggleBtn = document.getElementById('toggleSidebar');
-toggleBtn?.addEventListener('click', () => {
-  if (sidebar.classList.contains('open')) {
-    closeSidebar();
-  } else {
-    openSidebar();
-  }
-});
+  window.addEventListener("DOMContentLoaded", () => {
+    lucide.createIcons();
 
-      const sidebar = document.getElementById('adminSidebar');
-      const closeBtn = document.getElementById('closeSidebarBtn');
-      const mainContent = document.getElementById('mainContent');
-      const backdrop = document.getElementById('sidebarBackdrop');
+    const sidebar = document.getElementById('adminSidebar');
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const closeBtn = document.getElementById('closeSidebarBtn');
+    const mainContent = document.getElementById('mainContent');
+    const backdrop = document.getElementById('sidebarBackdrop');
 
-      const isMobile = () => window.innerWidth < 768;
+    const isMobile = () => window.innerWidth < 768;
 
-      const openSidebar = () => {
-        sidebar.classList.add('open');
-        mainContent.classList.add('shifted', 'blurred');
-        backdrop.classList.remove('hidden');
-        if (isMobile()) document.body.classList.add('sidebar-open');
-        localStorage.setItem('sidebarState', 'open');
-      };
+    const openSidebar = () => {
+      sidebar.classList.add('open');
+      mainContent.classList.add('shifted', 'blurred');
+      backdrop.classList.remove('hidden');
+      if (isMobile()) document.body.classList.add('sidebar-open');
+    };
 
-      const closeSidebar = () => {
-        sidebar.classList.remove('open');
-        mainContent.classList.remove('shifted', 'blurred');
-        backdrop.classList.add('hidden');
-        document.body.classList.remove('sidebar-open');
-        localStorage.setItem('sidebarState', 'closed');
-      };
+    const closeSidebar = () => {
+      sidebar.classList.remove('open');
+      mainContent.classList.remove('shifted', 'blurred');
+      backdrop.classList.add('hidden');
+      document.body.classList.remove('sidebar-open');
+    };
 
-      closeBtn?.addEventListener('click', closeSidebar);
-      backdrop?.addEventListener('click', closeSidebar);
+    // Toggle button
+    toggleBtn?.addEventListener('click', () => {
+      sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+    });
 
-      const savedState = localStorage.getItem('sidebarState');
-      const isDesktop = window.innerWidth >= 768;
+    closeBtn?.addEventListener('click', closeSidebar);
+    backdrop?.addEventListener('click', closeSidebar);
 
-      if (isDesktop) {
+    const isDesktop = window.innerWidth >= 768;
+
+    // Default state on load
+    if (isDesktop) {
+      sidebar.classList.add('open');
+      mainContent.classList.add('shifted');
+      backdrop.classList.add('hidden');
+      document.body.classList.remove('sidebar-open');
+    } else {
+      closeSidebar();
+    }
+
+    // Update on screen resize
+    window.addEventListener('resize', () => {
+      const nowDesktop = window.innerWidth >= 768;
+      if (nowDesktop) {
         sidebar.classList.add('open');
         mainContent.classList.add('shifted');
+        mainContent.classList.remove('blurred');
         backdrop.classList.add('hidden');
         document.body.classList.remove('sidebar-open');
+      } else {
+        closeSidebar();
       }
-
-      window.addEventListener('resize', () => {
-        const nowDesktop = window.innerWidth >= 768;
-        if (nowDesktop) {
-          sidebar.classList.add('open');
-          mainContent.classList.add('shifted');
-          mainContent.classList.remove('blurred');
-          backdrop.classList.add('hidden');
-          document.body.classList.remove('sidebar-open');
-        } else {
-          const state = localStorage.getItem('sidebarState');
-          state === 'open' ? openSidebar() : closeSidebar();
-        }
-      });
     });
+  });
   </script>
   
-<!-- Chart Scripts (place at bottom of body) -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  const ctx1 = document.getElementById('uploadChart').getContext('2d');
-  new Chart(ctx1, {
-    type: 'line',
-    data: {
-      labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-      datasets: [{
-        label: 'Uploads',
-        data: [3, 7, 4, 5, 9, 6, 4],
-        borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59,130,246,0.1)',
-        tension: 0.3
-      }]
-    }
-  });
 
-  const ctx2 = document.getElementById('visitorChart').getContext('2d');
-  new Chart(ctx2, {
-    type: 'doughnut',
-    data: {
-      labels: ['Mobile', 'Desktop', 'Tablet'],
-      datasets: [{
-        data: [60, 30, 10],
-        backgroundColor: ['#facc15', '#60a5fa', '#34d399']
-      }]
+<script>
+async function renderLineChart(canvasId, apiUrl, chartLabel, lineColor = '#1d4ed8') {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  try {
+    const res = await fetch(apiUrl);
+    const json = await res.json();
+    
+    
+
+    if (!json.success) throw new Error(json.message);
+    
+    
+  
+    const values = Array.isArray(json.data.data) ? json.data.data : [0, 0, 0, 0, 0, 0, 0];
+    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    // Destroy old chart if exists
+    if (window.uploadChartInstance) window.uploadChartInstance.destroy();
+
+    window.uploadChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: chartLabel,
+          data: values,
+          borderColor: lineColor,
+          borderWidth: 2,
+          backgroundColor: 'rgba(29,78,216,0.1)',
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            suggestedMax: 5, // Helps give room above small numbers
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      }
+    });
+
+  } catch (err) {
+    console.error(err);
+    ctx.font = "16px Arial";
+    ctx.fillText("Failed to load chart data", 10, 50);
+  }
+}
+// Usage:
+renderLineChart('uploadChart', '/api/weeks_upload.php', 'Uploads');
+
+  (async () => {
+  const canvas = document.getElementById('visitorChart');
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext('2d');
+
+  try {
+    const res = await fetch('/api/visitor-types.php');
+    const json = await res.json();
+
+    if (!json.success) {
+      throw new Error(json.message || 'Failed to load visitor data');
     }
-  });
+
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: json.labels,
+        datasets: [{
+          data: json.data,
+          backgroundColor: ['#facc15', '#60a5fa', '#34d399']
+        }]
+      },
+      options: {
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              font: {
+                size: 14
+              }
+            }
+          }
+        }
+      }
+    });
+  } catch (err) {
+    ctx.font = "16px Arial";
+    ctx.fillText("Failed to load visitor data", 10, 50);
+    console.error(err);
+  }
+})();
+</script>
+<script>
+  async function loadRecentActivities() {
+    const container = document.getElementById('activityList');
+    if (!container) return;
+
+    try {
+      const res = await fetch('/api/recent-activities.php');
+      const json = await res.json();
+
+      if (!json.success) throw new Error(json.message);
+
+      if (json.data.length === 0) {
+        container.innerHTML = `<li class="py-3 text-gray-400">No recent activity</li>`;
+        return;
+      }
+
+      container.innerHTML = json.data.map(act => `
+        <li class="py-3 flex justify-between items-center">
+          <span>${act.message}</span>
+          <span class="text-xs text-gray-400">${act.time_ago}</span>
+        </li>
+      `).join('');
+
+    } catch (err) {
+      console.error('Activity log error:', err);
+      container.innerHTML = `<li class="py-3 text-red-400">Failed to load activities</li>`;
+    }
+  }
+
+  // Call it when DOM is ready
+  window.addEventListener('DOMContentLoaded', loadRecentActivities);
 </script>
   </div>
 </body>

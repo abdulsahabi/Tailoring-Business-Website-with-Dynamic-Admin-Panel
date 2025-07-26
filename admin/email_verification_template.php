@@ -1,4 +1,7 @@
-<!-- templates/email-verification-template.php -->
+<?php
+// This file is loaded by send_otp_email() and expects:
+// $userName (string), $otpCode (string)
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,7 +28,7 @@
       padding: 32px 24px;
       border-radius: 12px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-      border-top: 4px solid #facc15; /* yellow-400 */
+      border-top: 4px solid #facc15; /* Tailwind yellow-400 */
     }
 
     .logo {
@@ -54,8 +57,8 @@
       font-size: 28px;
       font-weight: 700;
       letter-spacing: 8px;
-      background-color: #fef3c7;
-      color: #92400e;
+      background-color: #fef3c7; /* Tailwind yellow-100 */
+      color: #92400e; /* Tailwind yellow-900 */
       padding: 14px 0;
       border-radius: 8px;
       text-align: center;
@@ -67,14 +70,14 @@
 
     .expiry-note {
       font-size: 14px;
-      color: #6b7280;
+      color: #6b7280; /* Tailwind gray-500 */
       text-align: center;
     }
 
     .footer {
       margin-top: 32px;
       font-size: 12px;
-      color: #9ca3af;
+      color: #9ca3af; /* Tailwind gray-400 */
       text-align: center;
     }
 

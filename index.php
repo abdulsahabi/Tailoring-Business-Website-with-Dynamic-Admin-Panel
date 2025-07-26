@@ -1,3 +1,11 @@
+<?php
+require_once './includes/db.php';
+require_once './includes/functions.php';
+trackPageView(); // Auto-detects route
+logView()
+?>
+
+
 <?php ?><!DOCTYPE html><html lang="en">
 <head>
   <!-- Meta Basics -->
@@ -9,7 +17,7 @@
   <meta name="keywords" content="AU Idris, Northern fashion, kaftans, abayas, men’s styles, bridal outfits, Kebbi Nigeria, custom tailoring" />
   <meta name="author" content="AU Idris Fashion" />
   <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://afcbeewhy.com/" />
+  <link rel="canonical" href="beewhyenterprise.com.ng" />
   
   <!-- Page Title -->
   <title>AU Idris Fashion Center</title>
@@ -18,15 +26,15 @@
   <meta property="og:type" content="website" />
   <meta property="og:title" content="AU Idris Fashion Center" />
   <meta property="og:description" content="Explore trendy, elegant, and modest designs inspired by Northern culture." />
-  <meta property="og:image" content="https://afcbeewhy.com/assets/images/cover.jpg" />
-  <meta property="og:url" content="https://afcbeewhy.com" />
+  <meta property="og:image" content="beewhyenterprise.com.ng/assets/images/cover.jpg" />
+  <meta property="og:url" content="beewhyenterprise.com.ng" />
   <meta property="og:site_name" content="AU Idris Fashion" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="AU Idris Fashion Center" />
   <meta name="twitter:description" content="Elegant Northern styles tailored to perfection." />
-  <meta name="twitter:image" content="https://afcbeewhy.com/assets/images/cover.jpg" />
+  <meta name="twitter:image" content="beewhyenterprise.com.ng/assets/images/cover.jpg" />
 
   
   <!-- Favicon -->

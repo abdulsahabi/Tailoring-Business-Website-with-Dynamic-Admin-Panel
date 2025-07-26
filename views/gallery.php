@@ -1,3 +1,11 @@
+<?php
+require_once '../includes/db.php';
+require_once '../includes/functions.php';
+trackPageView(); // Auto-detects route
+logView()
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <?php include("./components/head.php") ?>

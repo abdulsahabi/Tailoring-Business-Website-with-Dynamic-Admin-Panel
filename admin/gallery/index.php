@@ -1,4 +1,6 @@
-<?php // admin-dashboard.php ?>
+<?php 
+  require_once __DIR__ . '/../../includes/auth.php';
+?>
 <?php $activePage = 'gallery'; ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -32,7 +34,7 @@
 
     #adminSidebar {
       width: var(--sidebar-width);
-      transition: transform 0.3s ease-in-out;
+      transition: transform 0.2s ease-in-out;
       z-index: 40;
       transform: translateX(-100%);
     }
@@ -42,7 +44,7 @@
     }
 
     #mainContent {
-      transition: all 0.3s ease-in-out;
+      transition: all 0.2s ease-in-out;
     }
 
     #mainContent.shifted {
@@ -116,6 +118,12 @@
 
   <!-- 📸 Table -->
   <div class="overflow-x-auto bg-white rounded-xl shadow-sm">
+    <?php if (isset($_GET['deleted']) && $_GET['deleted'] === 'true'): ?>
+  <div id="deleteAlert" class="mb-4 px-4 py-3 rounded-lg bg-green-100 border border-green-300 text-green-800 flex justify-between items-center text-[12px]">
+    ✅ Image deleted successfully.
+    <button onclick="document.getElementById('deleteAlert').remove()" class="ml-4 text-green-800 hover:text-green-600 focus:outline-none text-sm">&times;</button>
+  </div>
+<?php endif; ?>
     <table class="min-w-full divide-y divide-gray-200">
       <thead class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
         <tr>
@@ -138,9 +146,12 @@
   </div>
 </main>
 
-<!-- ✅ JavaScript -->
-<script>
-  const API_URL = '../../api/gallery-api.php'; // You’ll replace this with your real endpoint
+  <!-- Chart Scripts (place at bottom of body) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/lucide@latest" defer></script>
+  <!-- ✅ JavaScript -->
+  <script>
+  const API_URL = '../../api/gallery.php'; // ✅ Match backend filename
 
   const searchInput = document.getElementById('searchInput');
   const clearBtn = document.getElementById('clearSearch');
@@ -149,12 +160,12 @@
 
   let currentPage = 1;
   let totalItems = 0;
-  let perPage = 5;
+  const perPage = 5;
   let searchQuery = '';
 
   const showSkeleton = () => {
     tbody.innerHTML = '';
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < perPage; i++) {
       tbody.innerHTML += `
         <tr class="animate-pulse">
           <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded w-6"></div></td>
@@ -169,21 +180,29 @@
   const fetchGallery = async () => {
     showSkeleton();
     try {
-      const response = await fetch(`${API_URL}?page=${currentPage}&search=${encodeURIComponent(searchQuery)}`);
-      const { items, total } = await response.json();
+      const res = await fetch(`${API_URL}?page=${currentPage}&search=${encodeURIComponent(searchQuery)}`);
+      const { items, total } = await res.json();
+
       totalItems = total;
       renderTable(items);
       renderPagination();
-    } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-red-500 py-6">Failed to load data.</td></tr>`;
+    } catch (error) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center text-red-500 py-6">❌ Failed to fetch gallery. Try again.</td>
+        </tr>`;
     }
   };
 
   const renderTable = (items) => {
     if (!items.length) {
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-gray-500">No images found.</td></tr>`;
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center py-6 text-gray-500">📭 No images found.</td>
+        </tr>`;
       return;
     }
+
     tbody.innerHTML = '';
     items.forEach((item, i) => {
       const index = (currentPage - 1) * perPage + i + 1;
@@ -197,8 +216,8 @@
           <td class="px-4 py-3 hidden md:table-cell text-gray-500">${item.date}</td>
           <td class="px-4 py-3">
             <div class="flex gap-3 text-sm">
-              <a href="#" class="text-blue-500 hover:underline">Edit</a>
-              <a href="#" class="text-red-500 hover:underline">Delete</a>
+              <a href="/admin/gallery/update.php?id=${item.id}" class="text-blue-500 hover:underline">Edit</a>
+              
             </div>
           </td>
         </tr>`;
@@ -212,33 +231,34 @@
     if (totalPages <= 1) return;
 
     if (currentPage > 1) {
-      const prev = document.createElement('button');
-      prev.textContent = 'Previous';
-      prev.className = 'px-3 py-2 bg-gray-200 rounded hover:bg-gray-300';
-      prev.onclick = () => {
+      const prevBtn = document.createElement('button');
+      prevBtn.textContent = 'Previous';
+      prevBtn.className = 'px-3 py-2 bg-gray-200 rounded hover:bg-gray-300';
+      prevBtn.onclick = () => {
         currentPage--;
         fetchGallery();
       };
-      pagination.appendChild(prev);
+      pagination.appendChild(prevBtn);
     }
 
     const status = document.createElement('span');
     status.textContent = `Page ${currentPage} of ${totalPages}`;
+    status.className = 'px-4';
     pagination.appendChild(status);
 
     if (currentPage < totalPages) {
-      const next = document.createElement('button');
-      next.textContent = 'Next';
-      next.className = 'px-3 py-2 bg-gray-200 rounded hover:bg-gray-300';
-      next.onclick = () => {
+      const nextBtn = document.createElement('button');
+      nextBtn.textContent = 'Next';
+      nextBtn.className = 'px-3 py-2 bg-gray-200 rounded hover:bg-gray-300';
+      nextBtn.onclick = () => {
         currentPage++;
         fetchGallery();
       };
-      pagination.appendChild(next);
+      pagination.appendChild(nextBtn);
     }
   };
 
-  // 🔍 Search + Debounce
+  // 🔍 Debounced Search
   let debounceTimer;
   searchInput.addEventListener('input', () => {
     clearTimeout(debounceTimer);
@@ -258,80 +278,70 @@
     clearBtn.classList.add('hidden');
   });
 
-  // 🟡 Init
+  // 🚀 Init
   fetchGallery();
 </script>
-
-  <!-- Scripts -->
-  <script src="https://unpkg.com/lucide@latest" defer></script>
   <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      lucide.createIcons();
-      
-      const toggleBtn = document.getElementById('toggleSidebar');
-toggleBtn?.addEventListener('click', () => {
-  if (sidebar.classList.contains('open')) {
-    closeSidebar();
-  } else {
-    openSidebar();
-  }
-});
+  window.addEventListener("DOMContentLoaded", () => {
+    lucide.createIcons();
 
-      const sidebar = document.getElementById('adminSidebar');
-      const closeBtn = document.getElementById('closeSidebarBtn');
-      const mainContent = document.getElementById('mainContent');
-      const backdrop = document.getElementById('sidebarBackdrop');
+    const sidebar = document.getElementById('adminSidebar');
+    const toggleBtn = document.getElementById('toggleSidebar');
+    const closeBtn = document.getElementById('closeSidebarBtn');
+    const mainContent = document.getElementById('mainContent');
+    const backdrop = document.getElementById('sidebarBackdrop');
 
-      const isMobile = () => window.innerWidth < 768;
+    const isMobile = () => window.innerWidth < 768;
 
-      const openSidebar = () => {
-        sidebar.classList.add('open');
-        mainContent.classList.add('shifted', 'blurred');
-        backdrop.classList.remove('hidden');
-        if (isMobile()) document.body.classList.add('sidebar-open');
-        localStorage.setItem('sidebarState', 'open');
-      };
+    const openSidebar = () => {
+      sidebar.classList.add('open');
+      mainContent.classList.add('shifted', 'blurred');
+      backdrop.classList.remove('hidden');
+      if (isMobile()) document.body.classList.add('sidebar-open');
+    };
 
-      const closeSidebar = () => {
-        sidebar.classList.remove('open');
-        mainContent.classList.remove('shifted', 'blurred');
-        backdrop.classList.add('hidden');
-        document.body.classList.remove('sidebar-open');
-        localStorage.setItem('sidebarState', 'closed');
-      };
+    const closeSidebar = () => {
+      sidebar.classList.remove('open');
+      mainContent.classList.remove('shifted', 'blurred');
+      backdrop.classList.add('hidden');
+      document.body.classList.remove('sidebar-open');
+    };
 
-      closeBtn?.addEventListener('click', closeSidebar);
-      backdrop?.addEventListener('click', closeSidebar);
+    // Toggle button
+    toggleBtn?.addEventListener('click', () => {
+      sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+    });
 
-      const savedState = localStorage.getItem('sidebarState');
-      const isDesktop = window.innerWidth >= 768;
+    closeBtn?.addEventListener('click', closeSidebar);
+    backdrop?.addEventListener('click', closeSidebar);
 
-      if (isDesktop) {
+    const isDesktop = window.innerWidth >= 768;
+
+    // Default state on load
+    if (isDesktop) {
+      sidebar.classList.add('open');
+      mainContent.classList.add('shifted');
+      backdrop.classList.add('hidden');
+      document.body.classList.remove('sidebar-open');
+    } else {
+      closeSidebar();
+    }
+
+    // Update on screen resize
+    window.addEventListener('resize', () => {
+      const nowDesktop = window.innerWidth >= 768;
+      if (nowDesktop) {
         sidebar.classList.add('open');
         mainContent.classList.add('shifted');
+        mainContent.classList.remove('blurred');
         backdrop.classList.add('hidden');
         document.body.classList.remove('sidebar-open');
+      } else {
+        closeSidebar();
       }
-
-      window.addEventListener('resize', () => {
-        const nowDesktop = window.innerWidth >= 768;
-        if (nowDesktop) {
-          sidebar.classList.add('open');
-          mainContent.classList.add('shifted');
-          mainContent.classList.remove('blurred');
-          backdrop.classList.add('hidden');
-          document.body.classList.remove('sidebar-open');
-        } else {
-          const state = localStorage.getItem('sidebarState');
-          state === 'open' ? openSidebar() : closeSidebar();
-        }
-      });
     });
-  </script>
-  
-<!-- Chart Scripts (place at bottom of body) -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  });
+</script>
   </div>
 </body>
 </html>

@@ -1,4 +1,15 @@
-<?php // admin-dashboard.php ?>
+<?php 
+  require_once __DIR__ . '/../includes/auth.php';
+?>
+
+<?php
+require_once '../includes/db.php';
+require_once '../includes/functions.php';
+trackPageView(); // Auto-detects route
+?>
+
+
+
 <?php $activePage = 'gallery'; ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -1,3 +1,11 @@
+<?php
+require_once '../includes/db.php';
+require_once '../includes/functions.php';
+trackPageView(); // Auto-detects route
+?>
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <?php require("../views/components/head.php") ?>
@@ -11,6 +19,7 @@
     <p class="text-center text-[13px] mb-5 text-[var(--muted-text)]">
       A 6-digit code was sent to your email.
     </p>
+    <div class="toast-container"></div>
 
     <!-- Form -->
     <form id="verifyForm" class="flex flex-col gap-5">
@@ -37,8 +46,8 @@
       <!-- Resend -->
       <p class="text-[13px] mt-3 text-center text-[var(--muted-text)]">
         Didn’t get the code? 
-        <button type="button" id="resendBtn" class="text-[var(--primary-yellow)] font-medium hover:underline" disabled>
-          Resend in <span id="timer">30</span>s
+        <button type="button" id="resendBtn" class="text-[var(--primary-yellow)] font-medium hover:underline">
+          Resend Code<span id="timer"></span>
         </button>
       </p>
     </form>
@@ -61,182 +70,290 @@
     }
   </style>
 
-  <script>
-    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+<script>
+  const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    // Toast System
-    let toastContainer = document.querySelector(".toast-container");
-    if (!toastContainer) {
-      toastContainer = document.createElement("div");
-      toastContainer.className = "toast-container fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50";
-      document.body.appendChild(toastContainer);
-    }
+  // Toast System
+  let toastContainer = document.querySelector(".toast-container");
+  
 
-    function showToast(message, success = false) {
-      toastContainer.innerHTML = ""; // Clear previous toasts
-      const toast = document.createElement("div");
-      toast.className = `my-1 px-4 py-2 rounded text-sm text-white shadow-md transition-opacity duration-300 ${success ? 'bg-green-600' : 'bg-red-600'}`;
-      toast.textContent = message;
-      toastContainer.appendChild(toast);
-      setTimeout(() => toast.remove(), 4000);
-    }
+  function showToast(message, success = false) {
+    toastContainer.innerHTML = "";
+    const toast = document.createElement("div");
+    toast.className = `my-1 px-4 py-2 rounded text-sm text-white shadow-md transition-opacity duration-300 ${success ? 'bg-green-600' : 'bg-red-600'}`;
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+  }
 
-    // Email check
-    const params = new URLSearchParams(window.location.search);
-    const emailParam = params.get("email");
-    const emailInput = document.getElementById("email");
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // Email check
+  const params = new URLSearchParams(window.location.search);
+  const emailParam = params.get("email");
+  const emailInput = document.getElementById("email");
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!emailParam || !emailRegex.test(emailParam)) {
-      window.location.href = "/admin/forgot-password.php";
-    } else {
-      emailInput.value = emailParam;
-    }
+  if (!emailParam || !emailRegex.test(emailParam)) {
+    window.location.href = "/admin/forgot-password.php";
+  } else {
+    emailInput.value = emailParam;
+  }
 
-    // OTP Input Logic
-    const otpBoxes = document.querySelectorAll('.otp-box');
-    const hiddenCodeInput = document.getElementById("code");
+  // OTP Input Logic
+  const otpBoxes = document.querySelectorAll('.otp-box');
+  const hiddenCodeInput = document.getElementById("code");
 
-    otpBoxes.forEach((box, idx) => {
-      box.addEventListener('input', () => {
-        if (box.value.length === 1 && idx < otpBoxes.length - 1) {
-          otpBoxes[idx + 1].focus();
-        }
-        updateHiddenCode();
-      });
-
-      box.addEventListener('keydown', (e) => {
-        if (e.key === 'Backspace' && !box.value && idx > 0) {
-          otpBoxes[idx - 1].focus();
-        }
-      });
+  otpBoxes.forEach((box, idx) => {
+    box.addEventListener('input', () => {
+      if (box.value.length === 1 && idx < otpBoxes.length - 1) {
+        otpBoxes[idx + 1].focus();
+      }
+      updateHiddenCode();
     });
 
-    function updateHiddenCode() {
-  hiddenCodeInput.value = [...otpBoxes].map(b => b.value).join('');
-  if (hiddenCodeInput.value.length === 6 && /^\d{6}$/.test(hiddenCodeInput.value)) {
-    document.getElementById("verifyForm").requestSubmit(); // triggers submit event
+    box.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !box.value && idx > 0) {
+        otpBoxes[idx - 1].focus();
+      }
+    });
+  });
+
+  function updateHiddenCode() {
+    hiddenCodeInput.value = [...otpBoxes].map(b => b.value).join('');
+    if (hiddenCodeInput.value.length === 6 && /^\d{6}$/.test(hiddenCodeInput.value)) {
+      document.getElementById("verifyForm").requestSubmit();
+    }
+  }
+
+  otpBoxes[0].parentElement.addEventListener("paste", (e) => {
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData("text").trim();
+    if (!/^\d{6}$/.test(pasted)) return;
+
+    [...pasted].forEach((char, idx) => {
+      if (otpBoxes[idx]) otpBoxes[idx].value = char;
+    });
+
+    updateHiddenCode();
+    otpBoxes[5].focus();
+    showToast("Code pasted from clipboard", true);
+  });
+
+  let resendTimerInterval;
+
+  function formatTime(seconds) {
+    const mins = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const secs = String(seconds % 60).padStart(2, '0');
+    return `${mins}:${secs}`;
+  }
+
+  function startResendTimer(secondsRemaining) {
+    const resendBtn = document.getElementById("resendBtn");
+    const timerSpan = document.getElementById("timer");
+
+    resendBtn.disabled = true;
+    if (resendTimerInterval) clearInterval(resendTimerInterval);
+
+    timerSpan.textContent = formatTime(secondsRemaining);
+
+    resendTimerInterval = setInterval(() => {
+      secondsRemaining--;
+
+      if (secondsRemaining <= 0) {
+        clearInterval(resendTimerInterval);
+        resendBtn.disabled = false;
+        resendBtn.innerHTML = `Resend Code`; // Reset label
+      } else {
+        timerSpan.textContent = formatTime(secondsRemaining);
+      }
+    }, 1000);
+  }
+async function fetchAndStartCounter() {
+  const resendBtn = document.getElementById("resendBtn");
+
+  // Show loader spinner
+  let loader = document.getElementById("loader");
+  if (!loader) {
+    loader = document.createElement("div");
+    loader.id = "loader";
+    loader.className = "fixed inset-0 bg-black/60 flex items-center justify-center z-50";
+    loader.innerHTML = `<div class="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>`;
+    document.body.appendChild(loader);
+  } else {
+    loader.classList.remove("hidden");
+  }
+
+  try {
+    const res = await fetch("../api/request-code.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: emailInput.value })
+    });
+
+    const result = await res.json();
+    loader.classList.add("hidden");
+
+    // Handle failed API response structure
+    if (!res.ok || !result.success || !result.data.response?.expires_at) {
+      showToast(result.errors?.message || "Invalid or expired code.");
+      resendBtn.disabled = false;
+      resendBtn.innerHTML = "Resend Code";
+      
+      return;
+    }
+    
+
+    if (result.data.expired) {
+      showToast(result.data.message || "Your code has expired. Please request a new one.");
+      resendBtn.disabled = false;
+      resendBtn.innerHTML = "Resend Code";
+      return;
+    }
+
+    // Not expired: countdown starts
+    const serverNow = new Date(result.data.response.server_time);
+    const expiresAt = new Date(result.data.response.expires_at);
+    const secondsRemaining = Math.floor((expiresAt - serverNow) / 1000);
+
+    if (secondsRemaining > 0) {
+      resendBtn.innerHTML = `Resend in <span id="timer">${formatTime(secondsRemaining)}</span>`;
+      startResendTimer(secondsRemaining);
+    } else {
+      resendBtn.disabled = false;
+      resendBtn.innerHTML = "Resend Code";
+    }
+
+  } catch (err) {
+    loader.classList.add("hidden");
+    console.error("Failed to fetch code expiration", err);
+    showToast("An error occurred while fetching code status.");
   }
 }
+ 
+  // Initial counter
+  window.addEventListener("load", () => {
+    fetchAndStartCounter();
+  });
 
-    // Paste full 6-digit code
-    otpBoxes[0].parentElement.addEventListener("paste", (e) => {
-      e.preventDefault();
-      const pasted = (e.clipboardData || window.clipboardData).getData("text").trim();
-      if (!/^\d{6}$/.test(pasted)) return;
+  // Resend Button Handler
+  
+document.getElementById("resendBtn").addEventListener("click", async () => {
+  const resendBtn = document.getElementById("resendBtn");
+  
+  
 
-      [...pasted].forEach((char, idx) => {
-        if (otpBoxes[idx]) otpBoxes[idx].value = char;
-      });
+  // Show loader spinner
+  let loader = document.getElementById("loader");
+  if (!loader) {
+    loader = document.createElement("div");
+    loader.id = "loader";
+    loader.className = "fixed inset-0 bg-black/60 flex items-center justify-center z-50";
+    loader.innerHTML = `<div class="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>`;
+    document.body.appendChild(loader);
+  } else {
+    loader.classList.remove("hidden");
+  }
 
-      updateHiddenCode();
-      otpBoxes[5].focus();
-      showToast("Code pasted from clipboard", true);
+  try {
+    const res = await fetch("../api/resend-code.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: emailInput.value })
     });
 
-    // Resend Timer
-    function startResendTimer(duration = 30) {
-      const resendBtn = document.getElementById("resendBtn");
-      const timerSpan = document.getElementById("timer");
-      resendBtn.disabled = true;
-      let timeLeft = duration;
-
-      const interval = setInterval(() => {
-        timeLeft--;
-        timerSpan.textContent = timeLeft;
-        if (timeLeft <= 0) {
-          clearInterval(interval);
-          resendBtn.disabled = false;
-          resendBtn.innerHTML = "Resend Code";
-        }
-      }, 1000);
+    const result = await res.json();
+    loader.classList.add("hidden");
+    
+    if (res.status === 429) {
+      showToast("Too many attempts. Please wait a while.", false);
+      fetchAndStartCounter();
+      return;
     }
 
-    startResendTimer();
+    if (!res.ok) {
+      showToast(result.errors.message || "Failed to resend code");
+      resendBtn.innerHTML = "Resend Code";
+      resendBtn.disabled = false;
+      return;
+    }
 
-    document.getElementById("resendBtn").addEventListener("click", async () => {
-      try {
-        const res = await fetch("/api/resend-code.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: emailInput.value })
-        });
+    showToast("Verification Code Resent – Check Your Inbox!", true);
+    
+      const serverNow = new Date(result.data.response.server_time);
+      const expiresAt = new Date(result.data.response.expires_at);
+      const secondsRemaining = Math.floor((expiresAt - serverNow) / 1000);
+        
+    if (secondsRemaining > 0) {
+      resendBtn.innerHTML = `Resend in <span id="timer">${formatTime(secondsRemaining)}</span>`;
+      startResendTimer(secondsRemaining);
+    } else {
+      resendBtn.innerHTML = "Resend Code";
+      resendBtn.disabled = false;
+    }
+  } catch (err) {
+    loader.classList.add("hidden");
+    showToast("Error resending code");
+    console.error(err);
+    resendBtn.innerHTML = "Resend Code";
+    resendBtn.disabled = false;
+  } 
+});
 
-        const result = await res.json();
-        if (!res.ok || !result.success) {
-          showToast(result.message || "Failed to resend code");
-          return;
-        }
+  // Submit Verification Code
+  document.getElementById("verifyForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-        showToast("Verification code resent!", true);
-        document.getElementById("resendBtn").innerHTML = `Resend in <span id="timer">30</span>s`;
-        startResendTimer();
-      } catch (err) {
-        showToast("Error resending code");
-        console.error(err);
-      }
-    });
+    const code = hiddenCodeInput.value;
+    const email = emailInput.value;
+    const codeError = document.getElementById("code_error");
 
-    // Form submission
-    document.getElementById("verifyForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
+    let loader = document.getElementById("loader");
+    if (!loader) {
+      loader = document.createElement("div");
+      loader.id = "loader";
+      loader.className = "fixed inset-0 bg-black/60 flex items-center justify-center z-50";
+      loader.innerHTML = `<div class="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>`;
+      document.body.appendChild(loader);
+    } else {
+      loader.classList.remove("hidden");
+    }
 
-      const code = hiddenCodeInput.value;
-      const email = emailInput.value;
-      const codeError = document.getElementById("code_error");
+    codeError.textContent = "";
+    codeError.classList.add("hidden");
 
-      let loader = document.getElementById("loader");
-      if (!loader) {
-        loader = document.createElement("div");
-        loader.id = "loader";
-        loader.className = "fixed inset-0 bg-black/60 flex items-center justify-center z-50";
-        loader.innerHTML = `<div class="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>`;
-        document.body.appendChild(loader);
-      } else {
-        loader.classList.remove("hidden");
-      }
+    if (!/^\d{6}$/.test(code)) {
+      codeError.textContent = "Please enter a valid 6-digit code";
+      codeError.classList.remove("hidden");
+      otpBoxes[0].focus();
+      loader.classList.add("hidden");
+      return;
+    }
 
-      codeError.textContent = "";
-      codeError.classList.add("hidden");
+    try {
+      const res = await fetch("../api/verify-code.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code, purpose: "verify" })
+      });
 
-      if (!/^\d{6}$/.test(code)) {
-        codeError.textContent = "Please enter a valid 6-digit code";
+      const result = await res.json();
+      loader.classList.add("hidden");
+
+      if (!res.ok || !result.success) {
+        codeError.textContent = result.errors?.message || "Invalid or expired code";
         codeError.classList.remove("hidden");
         otpBoxes[0].focus();
-        loader.classList.add("hidden");
         return;
       }
 
-      try {
-        const res = await fetch("/api/verify-code.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, code })
-        });
+      showToast(result.data.message || "Code verified successfully!", true);
+      window.location.href = result.data.redirect || "/admin/login.php";
 
-        await delay(1000);
-        const result = await res.json();
-        loader.classList.add("hidden");
-
-        if (!res.ok || !result.success) {
-          codeError.textContent = result.message || "Invalid or expired code";
-          codeError.classList.remove("hidden");
-          otpBoxes[0].focus();
-          return;
-        }
-
-        showToast("Code verified successfully!", true);
-
-        setTimeout(() => {
-          window.location.href = `/admin/reset-password.php?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`;
-        }, 1000);
-
-      } catch (err) {
-        loader.classList.add("hidden");
-        showToast("Something went wrong.");
-        console.error(err);
-      }
-    });
-  </script>
+    } catch (err) {
+      loader.classList.add("hidden");
+      showToast("Something went wrong.");
+      console.error(err);
+    } 
+  });
+</script>
 </body>
 </html>

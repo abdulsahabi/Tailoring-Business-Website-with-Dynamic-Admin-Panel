@@ -1,4 +1,12 @@
-<?php // 404.php ?>
+<?php
+require_once './includes/db.php';
+require_once './includes/functions.php';
+trackPageView(); // Auto-detects route
+logView();
+?>
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

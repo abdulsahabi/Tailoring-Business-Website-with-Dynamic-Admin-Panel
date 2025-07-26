@@ -15,9 +15,10 @@ $options = [
 
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
-     echo "Connected successfully"; // Optional for testing
-    
 } catch (\PDOException $e) {
+    logError($e);
     throw new \PDOException($e->getMessage(), (int)$e->getCode());
+    header('Location: /admin/erros/index.php');
+    exit;
 }
 ?>

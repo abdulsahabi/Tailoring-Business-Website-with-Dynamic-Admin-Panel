@@ -6,12 +6,12 @@
   <!-- SEO Meta -->
   <meta name="description" content="AU Idris Fashion – Trendy, elegant, and modest Northern Nigerian fashion for every occasion." />
   <meta name="keywords" content="AU Idris, Northern fashion, kaftans, abayas, men’s styles, bridal outfits, Kebbi Nigeria, custom tailoring" />
-  <meta name="author" content="AU Idris Fashion" />
+  <meta name="author" content="BEEWHY ENTERPRISE" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://afcbeewhy.com/" />
 
   <!-- Page Title -->
-  <title>AU Idris Fashion Center</title>
+  <title>BEEWHY ENTERPRISE — Fashion Center</title>
 
     <!-- Open Graph (Facebook, WhatsApp, etc.) -->
   <meta property="og:type" content="website" />

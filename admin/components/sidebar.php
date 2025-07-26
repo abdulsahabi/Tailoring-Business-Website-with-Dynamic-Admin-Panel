@@ -55,7 +55,7 @@
 
   <!-- Logout (Sticky on small screens) -->
   <div class="absolute bottom-6 left-6 right-6 md:static md:mt-8">
-    <a href="/logout.php"
+    <a href="/api/logout.php"
        class="flex items-center gap-3 text-red-400 hover:text-red-600">
       <i data-lucide="log-out"></i> <span>Logout</span>
     </a>

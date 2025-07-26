@@ -1,3 +1,11 @@
+<?php
+require_once '../includes/db.php';
+require_once '../includes/functions.php';
+trackPageView(); // Auto-detects route
+logView()
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,8 +26,8 @@
     </button>
 
     <!-- Hero Image -->
-    <section class="rounded-xl overflow-hidden shadow-md flex items-center justify-center">
-      <img src="/assets/images/new_logo.jpg" alt="Tailored fashion banner" class="h-60 w-[150px] object-cover">
+    <section class="rounded-xl overflow-hidden flex items-center justify-center">
+      <img src="../assets/images/logo.jpg" alt="AU Beewhy logo" class="w-[180px] h-[180px] rounded-full">
     </section>
 
     <!-- Page Title -->

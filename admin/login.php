@@ -1,3 +1,20 @@
+<?php
+session_start();
+
+if (isset($_SESSION['flash'])) {
+    $flash = $_SESSION['flash'];
+    unset($_SESSION['flash']); // Only show once
+}
+?>
+
+<?php
+require_once '../includes/db.php';
+require_once '../includes/functions.php';
+trackPageView(); // Auto-detects route
+?>
+
+
+
 <!DOCTYPE html><html lang="en">
 <?php require("../views/components/head.php") ?>
 <body class="bg-[var(--background-color)] text-[var(--text-color)] font-[PoppinsRegular]">
@@ -16,7 +33,7 @@
 
 <!-- Logo -->
 <div class="w-full flex items-center justify-center mb-3">
-  <img src="../assets/images/logo.png" alt="AU Beewhy logo" class="w-[60px] h-[60px]">
+  <img src="../assets/images/logo.jpg" alt="AU Beewhy logo" class="w-[80px] h-[80px] rounded-full">
 </div>
 
 <h1 class="mb-[18px] text-[22px] text-center font-[PoppinsSemiBold]">
@@ -26,7 +43,12 @@
 <!-- Form Starts -->
 <form id="loginForm" class="flex flex-col gap-5">
   <div class="status w-full"></div>
-
+  <?php if (!empty($flash)): ?>
+    <div class="mb-4 px-4 py-3 rounded text-sm text-white 
+        <?= $flash['type'] === 'success' ? 'bg-green-600' : ($flash['type'] === 'warning' ? 'bg-yellow-500' : 'bg-red-600') ?>">
+        <?= htmlspecialchars($flash['message']) ?>
+    </div>
+<?php endif; ?>
   <!-- Email -->
   <div class="input-group relative">
     <label class="absolute top-[6px] label">EMAIL ADDRESS</label>
@@ -84,7 +106,7 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 function showToast(message, success = false) {
   const toast = document.createElement("div");
-  toast.className = `bottom-5 px-4 py-2 rounded text-sm z-50 text-white shadow-md transition-all duration-300 ${success ? 'bg-green-600' : 'bg-red-600'}`;
+  toast.className = `bottom-5 px-4 py-2 rounded text-sm z-50 text-white shadow-md transition-all duration-300 text-center ${success ? 'bg-green-600' : 'bg-red-600'}`;
   toast.textContent = message;
   let status = document.querySelector('.status')
   status.innerHTML = "";
@@ -97,7 +119,12 @@ document.getElementById("loginForm").addEventListener("submit", async function (
 
   const email = document.getElementById("email");
   const password = document.getElementById("password");
+  const submitBtn = document.getElementById("submitBtn");
 
+  // Disable submit button to prevent double clicks
+  submitBtn.disabled = true;
+
+  // Show loader
   let loader = document.getElementById("loader");
   if (!loader) {
     loader = document.createElement("div");
@@ -114,6 +141,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
     password: password.value,
   };
 
+  // Reset previous errors
   ["email", "password"].forEach(id => {
     const el = document.getElementById(`${id}_error`);
     if (el) {
@@ -141,6 +169,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
 
   if (hasError) {
     loader.classList.add("hidden");
+    submitBtn.disabled = false;
     if (focusField) focusField.focus();
     return;
   }
@@ -152,32 +181,42 @@ document.getElementById("loginForm").addEventListener("submit", async function (
       body: JSON.stringify(data),
     });
 
-    await delay(1000);
     const result = await res.json();
     loader.classList.add("hidden");
 
     if (!res.ok || !result.success) {
-      if (result.errors) {
+      if (result.errors && typeof result.errors === "object") {
         for (let key in result.errors) {
           const el = document.getElementById(`${key}_error`);
           if (el) {
-            el.textContent = result.errors[key];
+            el.textContent = result.errors[key] === "Invalid email or password." ? "" : result.errors[key];
             el.classList.remove("hidden");
           }
         }
       }
-      showToast("Login failed. Check your credentials.");
+      
+      
+
+      const msg = result.errors?.email || result.errors?.message
+      showToast(msg, false);
+      submitBtn.disabled = false;
       return;
     }
 
-    showToast("Login successful!", true);
+    // Success
+    showToast(result.data?.message || "Login successful!", true);
     setTimeout(() => {
-      window.location.href = "/admin/dashboard.php";
-    }, 1500);
+      window.location.href = result.data?.redirect || "/admin/dashboard.php";
+    }, 1200);
+
   } catch (err) {
+    console.error("Login Error:", err);
+    showToast("Something went wrong. Please try again...", false);
     loader.classList.add("hidden");
-    showToast("Something went wrong. Please try again.");
-    console.error(err);
+    submitBtn.disabled = false;
+  } finally {
+    // Safety fallback
+    loader.classList.add("hidden");
   }
 });
 </script>

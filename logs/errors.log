@@ -1,0 +1,1 @@
+PHPMailer Error: SMTP Error: Could not authenticate.[2025-07-24 08:56:29] ERROR: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'abdulsahabi_tc.gallery' doesn't exist

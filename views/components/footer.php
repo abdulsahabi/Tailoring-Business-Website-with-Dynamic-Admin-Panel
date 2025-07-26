@@ -3,7 +3,7 @@
 
     <!-- Brand Info -->
     <div>
-      <h3 class="text-xl font-semibold text-white mb-3">AU Idris Fashion</h3>
+      <h3 class="text-xl font-semibold text-white mb-3">BEEWHY ENTERPRISE</h3>
       <p class="text-sm leading-relaxed">
         We blend modern styles with Northern elegance. Crafted to perfection for every occasion.
       </p>
@@ -49,7 +49,7 @@
       </p>
 
       <div class="flex space-x-4 mt-4">
-        <a href="#" aria-label="Facebook" class="hover:text-white">
+        <a href="https://www.facebook.com/profile.php?id=61578764211055" aria-label="Facebook" class="hover:text-white">
           <i data-lucide="facebook" class="w-5 h-5"></i>
         </a>
         <a href="#" aria-label="Instagram" class="hover:text-white">
@@ -64,6 +64,6 @@
   </div>
 
   <div class="border-t border-gray-700 mt-10 pt-6 text-sm text-center">
-    &copy; <span id="year"></span> AU Idris Fashion. All Rights Reserved.
+    &copy; <span id="year"></span> BEEWHY ENTERPRISE. All Rights Reserved.
   </div>
 </footer>
