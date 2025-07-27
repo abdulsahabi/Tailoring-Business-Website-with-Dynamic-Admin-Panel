@@ -8,6 +8,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+
 // === Generate OTP ===
 function generateOtpCode($length = 6): string {
   return str_pad(random_int(0, pow(10, $length) - 1), $length, '0', STR_PAD_LEFT);
@@ -124,8 +125,6 @@ function getPeakTrafficStats(PDO $pdo) {
         'average_visitors' => number_format($row['total_views'])
     ];
 }
-
-
 
 function get_ip_location(string $ip): string {
     // Detect private/reserved ranges

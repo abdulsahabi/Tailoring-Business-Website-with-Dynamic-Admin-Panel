@@ -99,13 +99,13 @@
       <p class="greeting">Hello <?= htmlspecialchars($userName ?? 'User') ?>,</p>
 
       <p class="message">
-        Welcome to <strong>AU Idris</strong>! To complete your registration, please use the verification code below.
+        Welcome to <strong>BEEWHY ENTERPRISE</strong>! To complete your registration, please use the verification code below.
       </p>
 
       <div class="otp-box"><?= htmlspecialchars($otpCode ?? '123456') ?></div>
 
       <p class="expiry-note">
-        This code is valid for the next <strong>10 minutes</strong>.
+        This code is valid for the next <strong>5 minutes</strong>.
       </p>
 
       <p class="message" style="margin-top: 24px;">
@@ -113,7 +113,7 @@
       </p>
 
       <div class="footer">
-        &copy; <?= date('Y') ?> AU Idris. All rights reserved.
+        &copy; <?= date('Y') ?> BEEWHY ENTERPRISE. All rights reserved.
       </div>
     </div>
   </div>

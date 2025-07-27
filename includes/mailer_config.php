@@ -11,16 +11,21 @@ require_once __DIR__ . '/../vendor/autoload.php';
  *
  * @return PHPMailer
  */
+ 
+ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
+
+
 function getMailer(): PHPMailer {
     $mail = new PHPMailer(true);
 
     try {
         // Server settings
         $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com';
+        $mail->Host       = $_ENV["EMAIL_HOST"];
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'tcstudio6542@gmail.com';         // Replace with your Gmail
-        $mail->Password   = 'astu zhwi mvgu ccfr';            // Gmail App Password
+        $mail->Username   = $_ENV["EMAIL"];         // Replace with your Gmail
+        $mail->Password   = $_ENV["EMAIL_PASS"];            // Gmail App Password
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
 
@@ -29,7 +34,7 @@ function getMailer(): PHPMailer {
         $mail->Debugoutput = 'error_log';
 
         // Sender info
-        $mail->setFrom('tcstudio6542@gmail.com', 'AU Idris');
+        $mail->setFrom($_ENV["EMAIL"], 'BEEWHY ENTERPRISE');
 
         // Content settings
         $mail->isHTML(true);
