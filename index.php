@@ -2,7 +2,10 @@
 require_once './includes/db.php';
 require_once './includes/functions.php';
 trackPageView(); // Auto-detects route
-logView()
+logView();
+
+$stmt = $pdo->query("SELECT id, image_name AS src, alt, caption, tag FROM images ORDER BY created_at DESC LIMIT 3");
+$gallery = $stmt->fetchAll();
 ?>
 
 
@@ -243,38 +246,32 @@ logView()
 
 <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-6xl mx-auto items-stretch">
   
-    <?php
-    $gallery = [
-      ['src' => '/assets/images/gallery4.jpg', 'alt' => 'Elegant Brown Kaftan', 'caption' => 'Classic Elegance', 'tag' => 'Men'],
-      ['src' => '/assets/images/gallery3.jpg', 'alt' => 'Bridal Embroidery Gown', 'caption' => 'Bridal Kaftan Set', 'tag' => 'Bridal'],
-      ['src' => '/assets/images/gallery1.jpg', 'alt' => 'White Gentleman Attire', 'caption' => 'Royal Simplicity', 'tag' => 'Classic'],
-      ['src' => '/assets/images/gallery2.jpg', 'alt' => 'Blue Hausa Outfit', 'caption' => 'Northern Touch', 'tag' => 'Cultural'],
-    ];
-    foreach ($gallery as $index => $item):
-    ?>
-      <div class="relative group h-[220px] overflow-hidden rounded-xl shadow hover:shadow-lg transition-all duration-300" data-aos="fade-up" data-aos-delay="<?= 100 + ($index * 50) ?>">
-        
-        <!-- Category Tag -->
-        <div class="absolute top-2 left-2 bg-yellow-400 text-black text-xs px-2 py-1 rounded-full font-semibold z-10">
-          <?= htmlspecialchars($item['tag']) ?>
-        </div>
+    <?php foreach ($gallery as $index => $item): ?>
+  <div class="relative group h-[220px] overflow-hidden rounded-xl shadow hover:shadow-lg transition-all duration-300" data-aos="fade-up" data-aos-delay="<?= 100 + ($index * 50) ?>">
+    
+    <!-- Category Tag -->
+    <div class="absolute top-2 left-2 bg-yellow-400 text-black text-xs px-2 py-1 rounded-full font-semibold z-10">
+      <?= htmlspecialchars($item['tag']) ?>
+    </div>
 
-        <!-- Image -->
-        <img loading="lazy" src="<?= htmlspecialchars($item['src']) ?>" alt="<?= htmlspecialchars($item['alt']) ?>"
-          class="hover:scale-[1.04] transition-transform duration-500 ease-in-out w-full h-full object-cover" />
-        
-        <!-- Caption Overlay -->
-        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3 text-white font-medium text-sm">
-          <?= htmlspecialchars($item['caption']) ?>
-        </div>
+    <!-- Image -->
+    <img loading="lazy" src="./uploads/gallery/<?= htmlspecialchars($item['src']) ?>" alt="<?= htmlspecialchars($item['alt']) ?>"
+      class="hover:scale-[1.04] transition-transform duration-500 ease-in-out w-full h-full object-cover" />
+    
+    <!-- Caption Overlay -->
+    <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3 text-white font-medium text-sm">
+      <?= htmlspecialchars($item['caption']) ?>
+    </div>
 
-        <!-- Like Button -->
+    <!-- Like Button -->
     <button aria-label="Like this design"
-  class="like-btn absolute top-2 right-2 text-white/90 bg-black/40 rounded-full p-1 w-7 h-7 transition">
-  <i data-lucide="heart" class="lucide-heart transition duration-300 w-5 h-5"></i>
-</button>
-</div>
-    <?php endforeach; ?>
+      class="like-btn absolute top-2 right-2 text-white/90 bg-black/40 rounded-full p-1 w-7 h-7 transition">
+      <i data-lucide="heart" class="lucide-heart transition duration-300 w-5 h-5"></i>
+    </button>
+  </div>
+<?php endforeach; ?>
+    
+    
   </div>
 
   <div class="text-center mt-10">

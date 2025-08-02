@@ -46,17 +46,6 @@ logView()
 <script>
   lucide.createIcons();
 
-  const allImages = [
-    { src: '/assets/images/gallery4.jpg', alt: 'Elegant Brown Kaftan', caption: 'Classic Elegance', tag: 'Men' },
-    { src: '/assets/images/gallery3.jpg', alt: 'Bridal Embroidery Gown', caption: 'Bridal Kaftan Set', tag: 'Bridal' },
-    { src: '/assets/images/gallery1.jpg', alt: 'White Gentleman Attire', caption: 'Royal Simplicity', tag: 'Classic' },
-    { src: '/assets/images/gallery2.jpg', alt: 'Blue Hausa Outfit', caption: 'Northern Touch', tag: 'Cultural' },
-    { src: '/assets/images/gallery5.jpg', alt: 'Green Designer Kaftan', caption: 'Fresh Style', tag: 'Men' },
-    { src: '/assets/images/gallery6.jpg', alt: 'Golden Bridal Dress', caption: 'Lux Bridal', tag: 'Bridal' },
-    { src: '/assets/images/gallery7.jpg', alt: 'Elegant White Robe', caption: 'Simple & Royal', tag: 'Classic' },
-    { src: '/assets/images/gallery8.jpg', alt: 'Traditional Blue Attire', caption: 'Northern Pride', tag: 'Cultural' },
-  ];
-
   const galleryGrid = document.getElementById('galleryGrid');
   const loadMoreBtn = document.getElementById('loadMoreBtn');
   const batchSize = 4;
@@ -99,23 +88,28 @@ logView()
   }
 
   async function renderBatch() {
-    const remaining = allImages.length - currentIndex;
-    if (remaining <= 0) return;
+    const url = `/api/images.php?limit=${batchSize}&offset=${currentIndex}`;
 
-    const count = Math.min(batchSize, remaining);
-    await showSkeletons(count);
+    await showSkeletons(batchSize);
     await new Promise(res => setTimeout(res, 300));
+
+    const res = await fetch(url);
+    const json = await res.json();
     await removeSkeletons();
 
-    const end = currentIndex + count;
-    for (let i = currentIndex; i < end; i++) {
-      const item = allImages[i];
+    if (!json.success || !json.data.length) {
+      loadMoreBtn.style.display = 'none';
+      return;
+    }
+
+    const data = json.data;
+    data.forEach(item => {
       const card = document.createElement('div');
       card.className = "relative group h-[220px] overflow-hidden rounded-xl shadow hover:shadow-lg transition-all duration-300";
 
       card.innerHTML = `
         <div class="absolute top-2 left-2 bg-yellow-400 text-black text-xs px-2 py-1 rounded-full font-semibold z-10">${item.tag}</div>
-        <img loading="lazy" src="${item.src}" alt="${item.alt}" class="w-full h-full object-cover hover:scale-[1.04] transition-transform duration-500" />
+        <img loading="lazy" src="/uploads/gallery/${item.src}" alt="${item.alt}" class="w-full h-full object-cover hover:scale-[1.04] transition-transform duration-500" />
         <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3 text-white font-medium text-sm">
           ${item.caption}
         </div>
@@ -123,16 +117,14 @@ logView()
           <i data-lucide="heart" class="lucide-heart w-5 h-5 transition duration-300"></i>
         </button>
       `;
-
       galleryGrid.appendChild(card);
-    }
+    });
 
     lucide.createIcons();
 
     document.querySelectorAll('.like-btn').forEach(button => {
       button.onclick = () => {
         const icon = button.querySelector('svg');
-        if (!icon) return;
         icon.classList.toggle('text-red-500');
         icon.classList.toggle('fill-current');
         icon.classList.add('scale-110');
@@ -141,9 +133,9 @@ logView()
       };
     });
 
-    currentIndex = end;
+    currentIndex += data.length;
 
-    if (currentIndex >= allImages.length) {
+    if (data.length < batchSize) {
       loadMoreBtn.style.display = 'none';
     }
   }

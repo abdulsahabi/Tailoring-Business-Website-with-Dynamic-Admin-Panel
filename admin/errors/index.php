@@ -23,6 +23,6 @@
 <body>
   <h1>Oops! Something went wrong.</h1>
   <p>We're currently having trouble connecting to our server.<br>Please check your network or try again shortly.</p>
-  <a href="/admin/login.php" class="btn">Go Back</a>
+  <a href="/" class="btn">Go Back</a>
 </body>
 </html>

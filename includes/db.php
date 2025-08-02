@@ -23,9 +23,8 @@ $options = [
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
-    logError($e);
-    throw new \PDOException($e->getMessage(), (int)$e->getCode());
-    header('Location: /admin/erros/index.php');
+    //throw new \PDOException($e->getMessage(), (int)$e->getCode());
+    header('Location: /admin/errors/index.php');
     exit;
 }
 ?>
