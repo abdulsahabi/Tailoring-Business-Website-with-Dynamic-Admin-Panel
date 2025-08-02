@@ -1,5 +1,4 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home2/beewhyen/public_html
-    - /bin/rsync -av . $DEPLOYPATH --exclude .git --exclude .cpanel.yml
+    - /bin/rsync -av /home2/beewhyen/repositories/Tailoring-Business-Website-with-Dynamic-Admin-Panel.git/ /home2/beewhyen/public_html --exclude .git --exclude .cpanel.yml
