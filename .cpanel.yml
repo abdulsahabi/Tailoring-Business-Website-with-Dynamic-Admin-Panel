@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home2/beewhyen/public_html
+    - /bin/rsync -av . $DEPLOYPATH --exclude .git --exclude .cpanel.yml
